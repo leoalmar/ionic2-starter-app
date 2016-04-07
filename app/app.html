@@ -1,0 +1,10 @@
+<ion-menu [content]="conteudo">
+	<ion-content>
+		<ion-list>
+			<button ion-item menuClose (click)="openPage(home)">Home</button>
+			<button ion-item menuClose (click)="openPage(contas)">Contas</button>
+		</ion-list>
+	</ion-content>
+</ion-menu>
+
+<ion-nav [root]="rootPage" #conteudo></ion-nav>
