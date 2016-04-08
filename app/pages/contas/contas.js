@@ -1,6 +1,8 @@
-import {Page, NavController, Modal} from 'ionic-angular';
+import {Page, NavController, Modal, Alert} from 'ionic-angular';
 import {DAOContas} from '../../dao/dao-contas.js';
 import {ModalContasPage} from '../modal-contas/modal-contas';
+import {Toast} from 'ionic-native';
+
 
 @Page({
 	templateUrl: "build/pages/contas/contas.html"
@@ -14,7 +16,10 @@ export class ContasPage {
 
 	constructor(nav){
 		this.dao = new DAOContas();
-		this.listContas = this.dao.getList();
+
+		this.dao.getList((lista) => {
+			this.listContas = lista;
+		});
 
 		this.nav = nav;
 	}
@@ -23,7 +28,14 @@ export class ContasPage {
 		let modal = Modal.create(ModalContasPage);
 
 		modal.onDismiss((data) => {
-			this.dao.insert(data);
+			if(data){
+				this.dao.insert(data,(conta) => {
+					this.listContas.push(conta);
+					Toast.showShortBottom("Conta inserida.").subscribe((toast) => {
+						console.log(toast);
+					});
+				});
+			}
 		});
 
 		this.nav.present(modal);
@@ -33,14 +45,44 @@ export class ContasPage {
 		let modal = Modal.create(ModalContasPage,{conta:conta});
 
 		modal.onDismiss((data) => {
-			this.dao.edit(data);
+			if(data){
+				this.dao.edit(data,(conta) => {
+					Toast.showShortBottom("Conta alterada.").subscribe((toast) => {
+						console.log(toast);
+					});
+				});
+			}
 		});
 
 		this.nav.present(modal);
 	}
 
 	delete(conta){
-		this.dao.delete(conta);
+		let confirm = Alert.create({
+			title: "Excluir",
+			body: "Gostaria de escluir a conta "+ conta.descricao+"?",
+			buttons: [
+				{
+					text: "Sim",
+					handler: () => {
+						this.dao.delete(conta,(conta) => {
+							let pos = this.listContas.indexOf(conta);
+							this.listContas.splice(pos, 1);
+							Toast.showShortBottom("Conta excluída.").subscribe((toast) => {
+								console.log(toast);
+							});
+						});
+					}
+				},
+				{text: "Não", handler: () => {
+
+				}}
+			]
+		});
+
+		this.nav.present(confirm);
+
+
 	}
 
 }

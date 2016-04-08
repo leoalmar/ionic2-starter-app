@@ -1,34 +1,79 @@
+import {Storage, SqlStorage} from "ionic-angular";
+
+
 export class DAOContas {
 
 	constructor(){
-		this.list = [];
+		let storage = new Storage(SqlStorage);
+
+		storage.query("CREATE TABLE IF NOT EXISTS contas(id INTEGER PRIMARY KEY AUTOINCREMENT, descricao TEXT)").then((data) => {
+			console.log(data);
+		},(error) => {
+			console.log('Error ' + JSON.stringify(error.err));
+		});
 	}
 
-	insert(conta){
-		this.list.push(conta);
+	insert(conta, successCalback){
+		let storage = new Storage(SqlStorage);
+
+		storage.query("INSERT INTO contas(descricao) VALUES (?)",[conta.descricao]).then((data) => {
+
+			conta.id = data.res.insertId;
+
+			successCalback(conta);
+
+			console.log(conta.id);
+
+		},(error) => {
+			console.log('Error ' + JSON.stringify(error.err));
+		});
 	}
 
-	edit(conta){
+	edit(conta, successCalback){
+		let storage = new Storage(SqlStorage);
 
+		storage.query("UPDATE contas SET descricao = ? WHERE id = ?",[conta.descricao, conta.id]).then((data) => {
+
+			successCalback(conta);
+
+		},(error) => {
+			console.log('Error ' + JSON.stringify(error.err));
+		});
 	}
 
-	delete(conta){
-		let pos = this.list.indexOf(conta);
+	delete(conta, successCalback){
+		let storage = new Storage(SqlStorage);
 
-		this.list.splice(pos,1);
+		storage.query("DELETE FROM contas WHERE id = ?",[conta.id]).then((data) => {
+
+			successCalback(conta);
+
+		},(error) => {
+			console.log('Error ' + JSON.stringify(error.err));
+		});
 	}
 
-	getList(){
+	getList(successCalback){
+		let storage = new Storage(SqlStorage);
 
-		this.list = [
-			{descricao: "Alimentação"},
-			{descricao: "Saúde"},
-			{descricao: "Lazer"},
-			{descricao: "Transporte"}
-		];
+		storage.query("SELECT * FROM contas").then((data) => {
+			let lista = [];
 
-		return this.list;
+			for (var i =0; i < data.res.rows.length; i++) {
+
+				let item = {};
+
+				item.id = data.res.rows.item(i).id;
+				item = data.res.rows.item(i);
+
+				lista.push(item);
+			}
+
+			successCalback(lista);
+
+		},(error) => {
+			console.log('Error ' + JSON.stringify(error.err));
+		});
 	}
-
 
 }
